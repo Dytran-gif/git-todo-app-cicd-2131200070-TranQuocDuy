@@ -6,13 +6,10 @@ describe('Controller-Model Integration Tests', () => {
     let controller;
 
     beforeEach(() => {
-        // Reset singleton
         const s = new TodoService();
         s.todos = [];
         s.observers = [];
         service = s;
-
-        // Controller không cần view trong integration test
         controller = new Controller(service, null);
     });
 
@@ -36,14 +33,11 @@ describe('Controller-Model Integration Tests', () => {
         expect(service.todos.length).toBe(0);
     });
 
-    test('should handle multiple todos correctly', () => {
+    test('should add multiple todos correctly', () => {
         controller.handleAddTodo('Task 1');
         controller.handleAddTodo('Task 2');
-        controller.handleAddTodo('Task 3');
-        expect(service.todos.length).toBe(3);
-        
-        const id = service.todos[1].id;
-        controller.handleRemoveTodo(id);
         expect(service.todos.length).toBe(2);
+        expect(service.todos[0].text).toBe('Task 1');
+        expect(service.todos[1].text).toBe('Task 2');
     });
 });
