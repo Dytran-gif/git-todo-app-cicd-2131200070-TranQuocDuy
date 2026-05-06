@@ -1,35 +1,35 @@
 const { test, expect, _electron: electron } = require('@playwright/test');
+const path = require('path');
 
-test('End-to-end user workflow', async () => {
-    // Launch the Electron app
-    const electronApp = await electron.launch({ args: ['.'] });
-    const window = await electronApp.firstWindow();
+test('Core user workflow - add, complete, delete todo', async () => {
+    // Launch Electron app
+    const app = await electron.launch({
+        args: [path.join(__dirname, '../../main.js')]
+    });
 
-    const taskText = 'My new E2E test task';
+    const window = await app.firstWindow();
+    await window.waitForLoadState('domcontentloaded');
 
-    // --- TODO: Task 1: Add a new todo item ---
-    // 1. Find the input field (use a locator like window.locator('#todo-input')).
-    // 2. Type the `taskText` into it.
-    // 3. Find and click the "Add" button.
+    // --- ADD todo ---
+    await window.fill('#todo-input', 'Test E2E item');
+    await window.click('#add-todo-btn');
 
+    // Verify item appears in list
+    const todoItem = window.locator('.todo-item').first();
+    await expect(todoItem).toBeVisible();
+    await expect(todoItem.locator('.todo-text')).toHaveText('Test E2E item');
 
-    // --- TODO: Task 2: Verify the todo item was added ---
-    // 1. Locate the new todo item in the list. A good locator might be `window.locator('.todo-item')`.
-    // 2. Assert that its text content contains the `taskText`.
-    
+    // --- TOGGLE complete ---
+    await todoItem.locator('input[type="checkbox"]').click();
+    await expect(todoItem).toHaveClass(/completed/);
 
-    // --- TODO: Task 3: Mark the todo item as complete ---
-    // 1. Find the checkbox within the new todo item.
-    // 2. Click the checkbox.
-    // 3. Assert that the todo item now has the 'completed' class.
+    // --- DELETE item ---
+    // Hover để delete button hiện ra
+    await todoItem.hover();
+    await todoItem.locator('.delete-btn').click();
 
+    // Verify item removed
+    await expect(window.locator('.todo-item')).toHaveCount(0);
 
-    // --- TODO: Task 4: Delete the todo item ---
-    // 1. Find the delete button within the todo item.
-    // 2. Click the delete button.
-    // 3. Assert that the todo item is no longer visible on the page.
-
-
-    // Close the app
-    await electronApp.close();
+    await app.close();
 });
